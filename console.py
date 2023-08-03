@@ -113,40 +113,41 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def do_create(self, args):
-        """ Create an object of any class"""
-        if not args:
-            print("** class name missing **")
-            return
-        elif args not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
+    def do_create(self, arg):
+        """Usage: create <class> <key 1>=<value 2> <key 2>=<value 2> ...
+        Create a new class instance with given keys/values and print its id.
+        """
+        try:
+            if not arg:
+                raise SyntaxError()
 
-        new_instance = HBNBCommand.classes[args]()
+        args = arg.split()
+        class_name = args[0]
+        kwargs = {}
 
-        # Iterate over the parameters provided by the user
-        params = args.split()
-        param_dict = {}
-        for param in params[1:]:
-            try:
-                key, value = param.split("=")
-                if value.startswith('"') and value.endswith('"'):
-                    value = value[1:-1].replace("_", " ")
-                elif '.' in value:
-                    value = float(value)
-                else:
-                    value = int(value)
-                    param_dict[key] = value
-            except ValueError:
-                continue
+        for arg in args[1:]:
+            key, value = arg.split("=")
+            if value[0] == '"':
+                value = value.strip('"').replace("_", " ")
+            else:
+                try:
+                    value = eval(value)
+                except (SyntaxError, NameError):
+                    continue
+            kwargs[key] = value
 
-        # Set the parameters for the created instance
-        for key, value in param_dict.items():
-            setattr(new_instance, key, value)
+        if kwargs == {}:
+            obj = eval(class_name)()
+        else:
+            obj = eval(class_name)(**kwargs)
+            storage.new(obj)
+        print(obj.id)
+        obj.save()
 
-            storage.save()
-            print(new_instance.id)
-            storage.save()
+    except SyntaxError:
+        print("** class name missing **")
+    except NameError:
+        print("** class doesn't exist **")
 
     def help_create(self):
         """ Help information for the create method """
