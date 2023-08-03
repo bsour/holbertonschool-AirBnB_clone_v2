@@ -114,40 +114,39 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def do_create(self, args):
-        def do_create(self, args):
-    """ Create an object of any class"""
-    if not args:
-        print("** class name missing **")
-        return
-    elif args not in HBNBCommand.classes:
-        print("** class doesn't exist **")
-        return
+        """ Create an object of any class"""
+        if not args:
+            print("** class name missing **")
+            return
+        elif args not in HBNBCommand.classes:
+            print("** class doesn't exist **")
+            return
 
-    new_instance = HBNBCommand.classes[args]()
+        new_instance = HBNBCommand.classes[args]()
 
-    # Iterate over the parameters provided by the user
-    params = args.split()
-    param_dict = {}
-    for param in params[1:]:
-        try:
-            key, value = param.split("=")
-            if value.startswith('"') and value.endswith('"'):
-                value = value[1:-1].replace("_", " ")
-            elif '.' in value:
-                value = float(value)
-            else:
-                value = int(value)
-            param_dict[key] = value
-        except ValueError:
-            continue
+        # Iterate over the parameters provided by the user
+        params = args.split()
+        param_dict = {}
+        for param in params[1:]:
+            try:
+                key, value = param.split("=")
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1].replace("_", " ")
+                elif '.' in value:
+                    value = float(value)
+                else:
+                    value = int(value)
+                    param_dict[key] = value
+            except ValueError:
+                continue
 
-    # Set the parameters for the created instance
-    for key, value in param_dict.items():
-        setattr(new_instance, key, value)
+        # Set the parameters for the created instance
+        for key, value in param_dict.items():
+            setattr(new_instance, key, value)
 
-    storage.save()
-    print(new_instance.id)
-    storage.save()
+            storage.save()
+            print(new_instance.id)
+            storage.save()
 
     def help_create(self):
         """ Help information for the create method """
