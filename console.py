@@ -121,26 +121,26 @@ class HBNBCommand(cmd.Cmd):
             if not arg:
                 raise SyntaxError()
 
-        args = arg.split()
-        class_name = args[0]
-        kwargs = {}
+            args = arg.split()
+            class_name = args[0]
+            kwargs = {}
 
-        for arg in args[1:]:
-            key, value = arg.split("=")
-            if value[0] == '"':
-                value = value.strip('"').replace("_", " ")
+            for arg in args[1:]:
+                key, value = arg.split("=")
+                if value[0] == '"':
+                    value = value.strip('"').replace("_", " ")
+                else:
+                    try:
+                        value = eval(value)
+                    except (SyntaxError, NameError):
+                        continue
+                    kwargs[key] = value
+
+            if kwargs == {}:
+                obj = eval(class_name)()
             else:
-                try:
-                    value = eval(value)
-                except (SyntaxError, NameError):
-                    continue
-            kwargs[key] = value
-
-        if kwargs == {}:
-            obj = eval(class_name)()
-        else:
-            obj = eval(class_name)(**kwargs)
-            storage.new(obj)
+                obj = eval(class_name)(**kwargs)
+                storage.new(obj)
         print(obj.id)
         obj.save()
 
