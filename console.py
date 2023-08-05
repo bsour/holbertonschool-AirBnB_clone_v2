@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """ Console Module """
 import cmd
+import json
 import sys
 from models.base_model import BaseModel
 from models.__init__ import storage
@@ -73,7 +74,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline[2].strip()  # pline is now str
                 if pline:
                     # check for *args or **kwargs
-                    if pline[0] == '{' and pline[-1] == '}'\
+                    if pline[0] is '{' and pline[-1] is'}'\
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -113,41 +114,54 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def do_create(self, arg):
+    def do_create(self, args):
         """ Create an object of any class"""
-        if not arg:
+        if not args:
             print("** class name missing **")
             return
 
-        args_list = arg.split(' ')
-        class_name = args_list.pop(0)
-
-        if class_name not in HBNBCommand.classes:
+        commands = args[:]
+        commands = commands.partition(' ')
+        classes = commands[0]
+        if classes not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
 
-        kwargs = {}
-
-        for item in args_list:
-            if '=' in item:
-                key, value = item.split("=")
+        new_instance = HBNBCommand.classes[classes]()
+        commands = commands[2]
+        new_dict = {}
+        while len(commands) != 0:
+            commands = commands.partition(" ")
+            parameter = commands[0].partition("=")
+            key = parameter[0]
+            value = parameter[2]
+            if value.isdecimal():
+                value = int(value)
+            else:
                 try:
-                    kwargs[key] = eval(value)
-                except (SyntaxError, NameError):
-                    kwargs[key] = value
-
-        for key, value in kwargs.items():
-            if isinstance(value, str):
-                kwargs[key] = value.replace('_', ' ').replace('"', '\"')
-
-        new_instance = HBNBCommand.classes[class_name]()
-
-        for key, value in kwargs.items():
-            setattr(new_instance, key, value)
-
-        storage.new(new_instance)
-        storage.save()
-
+                    value = float(value)
+                except:
+                    if value[0] is '\"' and value[-1] is '\"':
+                        valid = 1
+                        value = value[1:-1]
+                        value = value.replace('_', ' ')
+                        index = value.find('\"', 1)
+                        for i in range(len(value)):
+                            if (i == 0 and value[i] == '"'):
+                                valid = 0
+                            if (value[i] == '"'):
+                                if (value[i - 1] != '\\'):
+                                    valid = 0
+                        if (valid == 0):
+                            commands = commands[2]
+                            continue
+                    else:
+                        commands = commands[2]
+                        continue
+            new_dict[key] = value
+            commands = commands[2]
+        new_instance.__dict__.update(new_dict)
+        new_instance.save()
         print(new_instance.id)
 
     def help_create(self):
@@ -211,7 +225,7 @@ class HBNBCommand(cmd.Cmd):
         key = c_name + "." + c_id
 
         try:
-            del (storage.all()[key])
+            del(storage.all()[key])
             storage.save()
         except KeyError:
             print("** no instance found **")
@@ -230,14 +244,18 @@ class HBNBCommand(cmd.Cmd):
             if args not in HBNBCommand.classes:
                 print("** class doesn't exist **")
                 return
-            for k, v in storage._FileStorage__objects.items():
-                if k.split('.')[0] == args:
-                    print_list.append(str(v))
-        else:
-            for k, v in storage._FileStorage__objects.items():
+            for k, v in storage.all(HBNBCommand.classes[args]).items():
                 print_list.append(str(v))
-
-        print(print_list)
+        else:
+            for k, v in storage.all().items():
+                print_list.append(str(v))
+        print("[", end="")
+        for i in range(len(print_list)):
+            if (i == len(print_list) - 1):
+                print(print_list[i], end="")
+            else:
+                print(print_list[i], end=", ")
+        print("]")
 
     def help_all(self):
         """ Help information for the all command """
@@ -296,7 +314,7 @@ class HBNBCommand(cmd.Cmd):
                 args.append(v)
         else:  # isolate args
             args = args[2]
-            if args and args[0] == '\"':  # check for quoted arg
+            if args and args[0] is '\"':  # check for quoted arg
                 second_quote = args.find('\"', 1)
                 att_name = args[1:second_quote]
                 args = args[second_quote + 1:]
@@ -304,10 +322,10 @@ class HBNBCommand(cmd.Cmd):
             args = args.partition(' ')
 
             # if att_name was not quoted arg
-            if not att_name and args[0] != ' ':
+            if not att_name and args[0] is not ' ':
                 att_name = args[0]
             # check for quoted val arg
-            if args[2] and args[2][0] == '\"':
+            if args[2] and args[2][0] is '\"':
                 att_val = args[2][1:args[2].find('\"', 1)]
 
             # if att_val was not quoted arg
@@ -343,7 +361,6 @@ class HBNBCommand(cmd.Cmd):
         """ Help information for the update class """
         print("Updates an object with new information")
         print("Usage: update <className> <id> <attName> <attVal>\n")
-
 
 if __name__ == "__main__":
     HBNBCommand().cmdloop()
