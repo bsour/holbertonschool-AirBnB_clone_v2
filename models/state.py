@@ -29,3 +29,17 @@ class State(BaseModel, Base):
                 "City",
                 back_populates="state",
                 cascade="all, delete, delete-orphan")
+
+    def to_dict(self):
+        """
+        Returns a dict containing all keys/values of __dict__ of the instance
+        """
+        new_dict = self.__dict__.copy()
+        if "_sa_instance_state" in new_dict:
+            del new_dict["_sa_instance_state"]
+        new_dict['__class__'] = self.__class__.__name__
+        new_dict['created_at'] = self.created_at.strftime(
+            '%Y-%m-%dT%H:%M:%S.%f')
+        new_dict['updated_at'] = self.updated_at.strftime(
+            '%Y-%m-%dT%H:%M:%S.%f')
+        return new_dict
