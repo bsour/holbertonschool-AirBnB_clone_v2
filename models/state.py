@@ -36,10 +36,12 @@ class State(BaseModel, Base):
 
     def to_dict(self):
         """ Returns a dictionary containing all keys/values of the instance"""
-    new_dict = self.__dict__.copy()
-    if "_sa_instance_state" in new_dict:
-        del new_dict["_sa_instance_state"]
-    new_dict['__class__'] = self.__class__.__name__
-    new_dict['created_at'] = self.created_at.strftime('%Y-%m-%dT%H:%M:%S.%f')
-    new_dict['updated_at'] = self.updated_at.strftime('%Y-%m-%dT%H:%M:%S.%f')
-    return new_dict
+        new_dict = self.__dict__.copy()
+        if "_sa_instance_state" in new_dict:
+            del new_dict["_sa_instance_state"]
+        new_dict['__class__'] = self.__class__.__name__
+        new_dict['created_at'] = self.created_at.strftime(
+            '%Y-%m-%dT%H:%M:%S.%f')
+        new_dict['updated_at'] = self.updated_at.strftime(
+            '%Y-%m-%dT%H:%M:%S.%f')
+        return new_dict
